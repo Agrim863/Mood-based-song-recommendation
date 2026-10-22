@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood-Based Song Recommendation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+            flex: 0.5;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mood-analysis {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .mood-analysis h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .mood-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .mood-item {
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+            padding-left: 12px;
+        }
+
+        .recommendations {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .recommendations h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .song-item {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .song-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .song-rank {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .song-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .song-artist {
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .song-reason {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .song-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .song-link:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .error {
+            background: #ffe0e0;
+            color: #d32f2f;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .success {
+            background: #e0ffe0;
+            color: #388e3c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #388e3c;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn-clear {
+                flex: 1;
+            }
+
+            .mood-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Mood-Based Song Recommendation</h1>
+            <p>Tell us how you're feeling, and we'll suggest perfect songs for your mood</p>
+        </div>
+
+        <div class="error" id="error"></div>
+        <div class="success" id="success"></div>
+
+        <div class="input-section">
+            <label for="mood-input">How are you feeling right now?</label>
+            <textarea 
+                id="mood-input" 
+                placeholder="e.g., 'sad and nostalgic, want some emotional indie music'..."
+            ></textarea>
+            <div class="button-group">
+                <button class="btn-submit" id="submit-btn">Get Recommendations</button>
+                <button class="btn-clear" id="clear-btn">Clear</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your mood...</p>
+        </div>
+
+        <div class="mood-analysis" id="mood-analysis">
+            <h3>✨ Your Mood Analysis:</h3>
+            <div class="mood-info">
+                <div class="mood-item">
+                    <strong>Emotions:</strong> <span id="emotions"></span>
+                </div>
+                <div class="mood-item">
+                    <strong>Energy:</strong> <span id="energy"></span>
+                </div>
+                <div class="mood-item" style="grid-column: 1 / -1;">
+                    <strong>Vibe:</strong> <span id="vibe"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="recommendations" id="recommendations">
+            <h2>🎶 Top 5 Recommendations</h2>
+            <div id="songs-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const submitBtn = document.getElementById('submit-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const moodInput = document.getElementById('mood-input');
+        const loading = document.getElementById('loading');
+        const moodAnalysis = document.getElementById('mood-analysis');
+        const recommendations = document.getElementById('recommendations');
+        const errorDiv = document.getElementById('error');
+        const successDiv = document.getElementById('success');
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            moodInput.value = '';
+            loading.style.display = 'none';
+            moodAnalysis.style.display = 'none';
+            recommendations.style.display = 'none';
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+        });
+
+        // Submit button
+        submitBtn.addEventListener('click', async () => {
+            const mood = moodInput.value.trim();
+
+            // Validation
+            if (mood.length < 3) {
+                showError('Please describe your mood with at least a few words');
+                return;
+            }
+
+            // Clear previous results
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Show loading
+            loading.style.display = 'block';
+            moodAnalysis.style.display = 'none';
+            recommendations.style.display = 'none';
+            submitBtn.disabled = true;
+
+            try {
+                // Call API
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mood })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Failed to get recommendations');
+                    loading.style.display = 'none';
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                const data = await response.json();
+                displayResults(data);
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+
+            } catch (error) {
+                showError('Error connecting to the server: ' + error.message);
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function displayResults(data) {
+            // Display mood analysis
+            const moodData = data.mood_analysis;
+            document.getElementById('emotions').textContent = moodData.primary_emotions.join(', ');
+            document.getElementById('energy').textContent = moodData.energy_level;
+            document.getElementById('vibe').textContent = moodData.vibe;
+            moodAnalysis.style.display = 'block';
+
+            // Display recommendations
+            const songsList = document.getElementById('songs-list');
+            songsList.innerHTML = '';
+
+            const recs = data.recommendations;
+            recs.forEach(song => {
+                const spotifyQuery = encodeURIComponent(song.spotify_query);
+                const spotifyLink = `https://open.spotify.com/search/${spotifyQuery}`;
+
+                const songHTML = `
+                    <div class="song-item">
+                        <div>
+                            <span class="song-rank">${song.rank}</span>
+                            <div style="display: inline-block;">
+                                <div class="song-title">"${song.title}"</div>
+                                <div class="song-artist">by ${song.artist}</div>
+                            </div>
+                        </div>
+                        <div class="song-reason">💭 ${song.reason}</div>
+                        <a href="${spotifyLink}" target="_blank" class="song-link">
+                            🎵 Listen on Spotify →
+                        </a>
+                    </div>
+                `;
+                songsList.innerHTML += songHTML;
+            });
+
+            recommendations.style.display = 'block';
+        }
+
+        // Allow Enter key to submit
+        moodInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                submitBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
