@@ -1,11 +1,11 @@
 # 🎵 Mood-Based Song Recommendation MVP
 
-A minimal viable product that takes your mood description and recommends 5 songs with direct Spotify links using Claude AI.
+A minimal viable product that takes your mood description and recommends 5 songs with direct Spotify links using Groq AI.
 
 ## Features
 
 ✅ **Mood Input** - Describe how you're feeling in natural language  
-✅ **Claude AI Analysis** - Intelligent mood understanding  
+✅ **Groq AI Analysis** - Intelligent mood understanding  
 ✅ **Song Recommendations** - 5 personalized songs with reasons  
 ✅ **Clickable Links** - Direct Spotify links for each song  
 ✅ **Two Interfaces** - CLI or Web-based (your choice!)
@@ -17,7 +17,7 @@ A minimal viable product that takes your mood description and recommends 5 songs
 pip install anthropic flask
 ```
 
-## Setup - Get Your Claude API Key
+## Setup - Get Your Groq API Key
 
 1. Go to https://console.anthropic.com/
 2. Sign up or log in
