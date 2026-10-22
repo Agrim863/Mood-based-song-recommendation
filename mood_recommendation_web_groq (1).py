@@ -11,7 +11,7 @@ app = Flask(__name__)
 def extract_mood_and_songs(mood):
     """Same logic as your working CLI version"""
 
-    api_key = "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"
+    api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
         return {"error": "GROQ_API_KEY not set"}
 
